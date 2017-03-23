@@ -343,11 +343,20 @@ public:
 void consoleProcess(std::string consoleData)
 {
     nlohmann::json data = nlohmann::json::parse ( consoleData );
-    for (auto& element : data["messages"]["log"]) {
-        std::cout << element << '\n';
+    if ( data.find ( "error" ) != data.end () )
+    {
+        std::cerr << data["error"].get<std::string> ();
     }
-    for (auto& element : data["messages"]["results"]) {
-        std::cout << element << '\n';
+    if ( data.find ( "messages" ) != data.end () )
+    {
+        if ( data["messages"].find ( "log" ) != data["messages"].end () )
+            for (auto& element : data["messages"]["log"]) {
+                std::clog << element << '\n';
+            }
+        if ( data["messages"].find ( "results" ) != data["messages"].end () )
+            for (auto& element : data["messages"]["results"]) {
+                std::cout << element << '\n';
+            }
     }
 }
 
