@@ -219,7 +219,7 @@ nlohmann::json gServerOptions = {
 class ServerOptions : public ProgramApi::ArgumentParser
 {
 public:
-    ServerOptions () : ArgumentParser (gServerOptions)
+    ServerOptions () : ProgramApi::ArgumentParser (gServerOptions)
     {
     }
 };
