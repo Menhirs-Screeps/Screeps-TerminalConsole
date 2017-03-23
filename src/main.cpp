@@ -15,6 +15,17 @@
 #include "ScreepsApi/ApiManager.hpp"
 #include "ScreepsApi/Web.hpp"
 
+std::string toString ( std::istream& stream )
+{
+    /**/
+    std::string ret;
+    char buffer[4096];
+    while (stream.read(buffer, sizeof(buffer)))
+        ret.append(buffer, sizeof(buffer));
+    ret.append(buffer, stream.gcount());
+    return ret;
+}
+
 class ArgumentParser
 {
 public:
@@ -320,6 +331,14 @@ nlohmann::json gServerOptions = {
             } }
         } }
     };
+
+class ServerOptions : public ArgumentParser
+{
+public:
+    ServerOptions () : ArgumentParser (gServerOptions)
+    {
+    }
+};
 
 void consoleProcess(std::string consoleData)
 {
