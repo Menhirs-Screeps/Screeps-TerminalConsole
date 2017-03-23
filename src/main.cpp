@@ -343,14 +343,19 @@ public:
 void consoleProcess(std::string consoleData)
 {
     nlohmann::json data = nlohmann::json::parse ( consoleData );
-    std::cout << "console message: " << data.dump ( 4 ) << std::endl;
+    for (auto& element : data["messages"]["log"]) {
+        std::cout << element << '\n';
+    }
+    for (auto& element : data["messages"]["results"]) {
+        std::cout << element << '\n';
+    }
 }
 
 int main ( int argc, char** argv )
 {
     int index = 1;
     ServerOptions server;
-    Command::Arguments serverOptions = server.parseArgs ( index, argc, argv );
+    ArgumentParser::Arguments serverOptions = server.parseArgs ( index, argc, argv );
 
     std::shared_ptr < ScreepsApi::Web::Client > web (
         new WebClient ( serverOptions["serverIP"].get<std::string>()+":"+serverOptions["serverPort"].get<std::string>() )
