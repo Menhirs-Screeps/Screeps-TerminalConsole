@@ -4,6 +4,10 @@
 #include <fstream>
 #include <string>
 #include <thread>
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include <boost/filesystem.hpp>
 
@@ -244,8 +248,24 @@ void consoleProcess(std::string consoleData)
     }
 }
 
+nlohmann::json user;
+ProgramApi::ArgumentParser::Arguments serverOptions;
+std::shared_ptr < ScreepsApi::Api > client;
+
+void my_handler(int s){
+    std::cout << "caught signal" << std::endl;
+    client->ConsoleListener ( user["_id"].get<std::string> () );
+    exit(1); 
+}
+
 int main ( int argc, char** argv )
 {
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = my_handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, NULL);
+
     int index = 1;
     ServerOptions server;
     ProgramApi::ArgumentParser::Arguments serverOptions = server.parseArgs ( index, argc, argv );
@@ -257,7 +277,7 @@ int main ( int argc, char** argv )
         new WebsocketClient ( serverOptions["serverIP"].get<std::string>()+":"+serverOptions["serverPort"].get<std::string>()+"/socket/websocket" )
     );
     ScreepsApi::ApiManager::Instance ().initialize ( web, socket );
-    std::shared_ptr < ScreepsApi::Api > client = ScreepsApi::ApiManager::Instance ().getApi ();
+    client = ScreepsApi::ApiManager::Instance ().getApi ();
     bool ok = client->Signin ( serverOptions["username"], serverOptions["password"] );
     if ( ! ok ) {
         std::cerr << "Error: cannot connect/signin to the server" << std::endl;
@@ -266,7 +286,7 @@ int main ( int argc, char** argv )
     while ( ! client->initialized () )
         std::this_thread::sleep_for ( std::chrono::milliseconds ( 5 ) );
     std::cout << "signed in " << ok << std::endl;
-    nlohmann::json user = client->User ();
+    user = client->User ();
     client->ConsoleListener ( user["_id"].get<std::string> (), consoleProcess );
     while ( true )
         std::this_thread::sleep_for ( std::chrono::milliseconds ( 5 ) );
